@@ -8,3 +8,4 @@
 | # | Date | Weekday | Phase | Linked Issue | Note | Seed |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 2025-01-05 | Sunday | init | #1 | Finalize initialization baseline checkpoint 01 | seed-2025-dlt-daemon-01 |
+| 2 | 2025-01-22 | Wednesday | init | #2 | Finalize initialization baseline checkpoint 02 | seed-2025-dlt-daemon-02 |
