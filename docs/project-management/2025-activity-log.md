@@ -10,3 +10,4 @@
 | 1 | 2025-01-05 | Sunday | init | #1 | Finalize initialization baseline checkpoint 01 | seed-2025-dlt-daemon-01 |
 | 2 | 2025-01-22 | Wednesday | init | #2 | Finalize initialization baseline checkpoint 02 | seed-2025-dlt-daemon-02 |
 | 3 | 2025-02-11 | Tuesday | init | #1 | Finalize initialization baseline checkpoint 03 | seed-2025-dlt-daemon-03 |
+| 4 | 2025-03-03 | Monday | core | #3 | Deliver core feature slice 04 | seed-2025-dlt-daemon-04 |
