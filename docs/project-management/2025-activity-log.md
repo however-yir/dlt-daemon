@@ -13,3 +13,4 @@
 | 4 | 2025-03-03 | Monday | core | #3 | Deliver core feature slice 04 | seed-2025-dlt-daemon-04 |
 | 5 | 2025-03-23 | Sunday | core | #4 | Deliver core feature slice 05 | seed-2025-dlt-daemon-05 |
 | 6 | 2025-04-09 | Wednesday | core | #5 | Deliver core feature slice 06 | seed-2025-dlt-daemon-06 |
+| 7 | 2025-04-29 | Tuesday | core | #3 | Deliver core feature slice 07 | seed-2025-dlt-daemon-07 |
