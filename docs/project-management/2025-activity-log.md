@@ -21,3 +21,4 @@
 | 12 | 2025-08-03 | Sunday | core | #5 | Deliver core feature slice 12 | seed-2025-dlt-daemon-12 |
 | 13 | 2025-08-20 | Wednesday | core | #3 | Deliver core feature slice 13 | seed-2025-dlt-daemon-13 |
 | 14 | 2025-09-09 | Tuesday | fix | #6 | Apply fix and hardening patch 14 | seed-2025-dlt-daemon-14 |
+| 15 | 2025-09-29 | Monday | fix | #6 | Apply fix and hardening patch 15 | seed-2025-dlt-daemon-15 |
