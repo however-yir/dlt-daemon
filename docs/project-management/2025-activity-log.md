@@ -24,3 +24,4 @@
 | 15 | 2025-09-29 | Monday | fix | #6 | Apply fix and hardening patch 15 | seed-2025-dlt-daemon-15 |
 | 16 | 2025-10-19 | Sunday | fix | #6 | Apply fix and hardening patch 16 | seed-2025-dlt-daemon-16 |
 | 17 | 2025-11-05 | Wednesday | test | #7 | Add regression/test evidence checkpoint 17 | seed-2025-dlt-daemon-17 |
+| 18 | 2025-11-25 | Tuesday | test | #7 | Add regression/test evidence checkpoint 18 | seed-2025-dlt-daemon-18 |
