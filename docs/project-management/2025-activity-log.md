@@ -26,3 +26,4 @@
 | 17 | 2025-11-05 | Wednesday | test | #7 | Add regression/test evidence checkpoint 17 | seed-2025-dlt-daemon-17 |
 | 18 | 2025-11-25 | Tuesday | test | #7 | Add regression/test evidence checkpoint 18 | seed-2025-dlt-daemon-18 |
 | 19 | 2025-12-15 | Monday | docs | #8 | Update docs/deployment checkpoint 19 | seed-2025-dlt-daemon-19 |
+| 20 | 2025-12-31 | Wednesday | docs | #8 | Update docs/deployment checkpoint 20 | seed-2025-dlt-daemon-20 |
