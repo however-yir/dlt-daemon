@@ -40,6 +40,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <grp.h>
+#include <limits.h>
 
 #ifdef linux
 #   include <sys/timerfd.h>
@@ -85,6 +86,7 @@
 #include "dlt_daemon_socket.h"
 #include "dlt_daemon_unix_socket.h"
 #include "dlt_daemon_serial.h"
+#include "dlt_daemon_platform_ext.h"
 
 #include "dlt_daemon_client.h"
 #include "dlt_daemon_connection.h"
@@ -510,6 +512,28 @@ int option_file_parser(DltDaemonLocal *daemon_local)
 #endif
     daemon_local->flags.ipNodes = NULL;
     daemon_local->flags.injectionMode = 1;
+    strncpy(daemon_local->flags.cacheStrategy, "legacy", sizeof(daemon_local->flags.cacheStrategy) - 1);
+    strncpy(daemon_local->flags.ringbufferStrategy, "legacy", sizeof(daemon_local->flags.ringbufferStrategy) - 1);
+    daemon_local->flags.backpressureEnabled = 0;
+    daemon_local->flags.backpressureHighWatermark = 0U;
+    daemon_local->flags.backpressureHardLimit = 0U;
+    daemon_local->flags.backpressureDropMtinThreshold = DLT_LOG_INFO;
+    daemon_local->flags.degradeOnOverload = 0;
+    daemon_local->flags.appRateLimitPerSecond = 0U;
+    daemon_local->flags.appRateLimitBurst = 0U;
+    daemon_local->flags.controlAuthMode = 0;
+    daemon_local->flags.controlAuthAllowlist[0] = '\0';
+    daemon_local->flags.jsonExportEnable = 0;
+    daemon_local->flags.jsonExportPath[0] = '\0';
+    daemon_local->flags.prometheusMetricsEnable = 0;
+    daemon_local->flags.prometheusMetricsPath[0] = '\0';
+    daemon_local->flags.forwardTarget[0] = '\0';
+    daemon_local->flags.forwardTLSEnable = 0;
+    daemon_local->flags.forwardTLSCAFile[0] = '\0';
+    daemon_local->flags.forwardTLSCertFile[0] = '\0';
+    daemon_local->flags.forwardTLSKeyFile[0] = '\0';
+    daemon_local->flags.bridgeBackend[0] = '\0';
+    daemon_local->flags.bridgeEndpoint[0] = '\0';
 
     /* open configuration file */
     if (daemon_local->flags.cvalue[0])
@@ -936,6 +960,105 @@ int option_file_parser(DltDaemonLocal *daemon_local)
                     else if (strcmp(token, "InjectionMode") == 0) {
                         daemon_local->flags.injectionMode = atoi(value);
                     }
+                    else if (strcmp(token, "CacheStrategy") == 0) {
+                        strncpy(daemon_local->flags.cacheStrategy,
+                                value,
+                                sizeof(daemon_local->flags.cacheStrategy) - 1);
+                        daemon_local->flags.cacheStrategy[sizeof(daemon_local->flags.cacheStrategy) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "RingbufferStrategy") == 0) {
+                        strncpy(daemon_local->flags.ringbufferStrategy,
+                                value,
+                                sizeof(daemon_local->flags.ringbufferStrategy) - 1);
+                        daemon_local->flags.ringbufferStrategy[sizeof(daemon_local->flags.ringbufferStrategy) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "BackpressureEnable") == 0) {
+                        daemon_local->flags.backpressureEnabled = atoi(value);
+                    }
+                    else if (strcmp(token, "BackpressureHighWatermark") == 0) {
+                        daemon_local->flags.backpressureHighWatermark = (unsigned int)strtoul(value, NULL, 10);
+                    }
+                    else if (strcmp(token, "BackpressureHardLimit") == 0) {
+                        daemon_local->flags.backpressureHardLimit = (unsigned int)strtoul(value, NULL, 10);
+                    }
+                    else if (strcmp(token, "BackpressureDropMtinThreshold") == 0) {
+                        daemon_local->flags.backpressureDropMtinThreshold = atoi(value);
+                    }
+                    else if (strcmp(token, "DegradeOnOverload") == 0) {
+                        daemon_local->flags.degradeOnOverload = atoi(value);
+                    }
+                    else if (strcmp(token, "AppRateLimitPerSecond") == 0) {
+                        daemon_local->flags.appRateLimitPerSecond = (unsigned int)strtoul(value, NULL, 10);
+                    }
+                    else if (strcmp(token, "AppRateLimitBurst") == 0) {
+                        daemon_local->flags.appRateLimitBurst = (unsigned int)strtoul(value, NULL, 10);
+                    }
+                    else if (strcmp(token, "ControlAuthMode") == 0) {
+                        daemon_local->flags.controlAuthMode = atoi(value);
+                    }
+                    else if (strcmp(token, "ControlAuthAllowlist") == 0) {
+                        strncpy(daemon_local->flags.controlAuthAllowlist,
+                                value,
+                                sizeof(daemon_local->flags.controlAuthAllowlist) - 1);
+                        daemon_local->flags.controlAuthAllowlist[sizeof(daemon_local->flags.controlAuthAllowlist) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "JsonExportEnable") == 0) {
+                        daemon_local->flags.jsonExportEnable = atoi(value);
+                    }
+                    else if (strcmp(token, "JsonExportPath") == 0) {
+                        strncpy(daemon_local->flags.jsonExportPath,
+                                value,
+                                sizeof(daemon_local->flags.jsonExportPath) - 1);
+                        daemon_local->flags.jsonExportPath[sizeof(daemon_local->flags.jsonExportPath) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "PrometheusMetricsEnable") == 0) {
+                        daemon_local->flags.prometheusMetricsEnable = atoi(value);
+                    }
+                    else if (strcmp(token, "PrometheusMetricsPath") == 0) {
+                        strncpy(daemon_local->flags.prometheusMetricsPath,
+                                value,
+                                sizeof(daemon_local->flags.prometheusMetricsPath) - 1);
+                        daemon_local->flags.prometheusMetricsPath[sizeof(daemon_local->flags.prometheusMetricsPath) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "ForwardTarget") == 0) {
+                        strncpy(daemon_local->flags.forwardTarget,
+                                value,
+                                sizeof(daemon_local->flags.forwardTarget) - 1);
+                        daemon_local->flags.forwardTarget[sizeof(daemon_local->flags.forwardTarget) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "ForwardTLSEnable") == 0) {
+                        daemon_local->flags.forwardTLSEnable = atoi(value);
+                    }
+                    else if (strcmp(token, "ForwardTLSCAFile") == 0) {
+                        strncpy(daemon_local->flags.forwardTLSCAFile,
+                                value,
+                                sizeof(daemon_local->flags.forwardTLSCAFile) - 1);
+                        daemon_local->flags.forwardTLSCAFile[sizeof(daemon_local->flags.forwardTLSCAFile) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "ForwardTLSCertFile") == 0) {
+                        strncpy(daemon_local->flags.forwardTLSCertFile,
+                                value,
+                                sizeof(daemon_local->flags.forwardTLSCertFile) - 1);
+                        daemon_local->flags.forwardTLSCertFile[sizeof(daemon_local->flags.forwardTLSCertFile) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "ForwardTLSKeyFile") == 0) {
+                        strncpy(daemon_local->flags.forwardTLSKeyFile,
+                                value,
+                                sizeof(daemon_local->flags.forwardTLSKeyFile) - 1);
+                        daemon_local->flags.forwardTLSKeyFile[sizeof(daemon_local->flags.forwardTLSKeyFile) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "BridgeBackend") == 0) {
+                        strncpy(daemon_local->flags.bridgeBackend,
+                                value,
+                                sizeof(daemon_local->flags.bridgeBackend) - 1);
+                        daemon_local->flags.bridgeBackend[sizeof(daemon_local->flags.bridgeBackend) - 1] = '\0';
+                    }
+                    else if (strcmp(token, "BridgeEndpoint") == 0) {
+                        strncpy(daemon_local->flags.bridgeEndpoint,
+                                value,
+                                sizeof(daemon_local->flags.bridgeEndpoint) - 1);
+                        daemon_local->flags.bridgeEndpoint[sizeof(daemon_local->flags.bridgeEndpoint) - 1] = '\0';
+                    }
                     else {
                         fprintf(stderr, "Unknown option: %s=%s\n", token, value);
                     }
@@ -950,6 +1073,14 @@ int option_file_parser(DltDaemonLocal *daemon_local)
     }
     else {
         fprintf(stderr, "Cannot open configuration file: %s\n", filename);
+    }
+
+    if (strcmp(daemon_local->flags.ringbufferStrategy, "aggressive") == 0) {
+        if (daemon_local->RingbufferStepSize <= (ULONG_MAX / 2UL))
+            daemon_local->RingbufferStepSize *= 2UL;
+    } else if (strcmp(daemon_local->flags.ringbufferStrategy, "conservative") == 0) {
+        if (daemon_local->RingbufferStepSize > 1UL)
+            daemon_local->RingbufferStepSize /= 2UL;
     }
 
     return 0;
@@ -1481,6 +1612,7 @@ int main(int argc, char *argv[])
 
         return -1;
     }
+    dlt_daemon_platform_ext_init(&daemon_local);
 
     /* Initialize internal logging facility */
     dlt_log_set_filename(daemon_local.flags.loggingFilename);
@@ -3269,12 +3401,15 @@ int dlt_daemon_process_client_messages(DltDaemon *daemon,
 
             /* Check for control message */
             if ((0 < receiver->fd) &&
-                DLT_MSG_IS_CONTROL_REQUEST_V2(&(daemon_local->msgv2)))
-                dlt_daemon_client_process_control_v2(receiver->fd,
-                                                     daemon,
-                                                     daemon_local,
-                                                     &(daemon_local->msgv2),
-                                                     daemon_local->flags.vflag);
+                DLT_MSG_IS_CONTROL_REQUEST_V2(&(daemon_local->msgv2))) {
+                if (dlt_daemon_platform_ext_allow_control_client(daemon_local, receiver->fd)) {
+                    dlt_daemon_client_process_control_v2(receiver->fd,
+                                                         daemon,
+                                                         daemon_local,
+                                                         &(daemon_local->msgv2),
+                                                         daemon_local->flags.vflag);
+                }
+            }
             bytes_to_be_removed = (int) (daemon_local->msgv2.headersizev2 +
                 daemon_local->msgv2.datasize - (int32_t)daemon_local->msgv2.storageheadersizev2);
 
@@ -3601,14 +3736,16 @@ int dlt_daemon_process_control_messages(
                 if (dlt_daemon_create_secure_message(&(daemon_local->msg), &secure_msg) < 0)
                     continue;
 
-                if (dlt_daemon_client_process_control(receiver->fd,
-                                                    daemon,
-                                                    daemon_local,
-                                                    &secure_msg,
-                                                daemon_local->flags.vflag)
-                    == -1) {
-                    dlt_log(LOG_WARNING, "Can't process control messages\n");
-                    return -1;
+                if (dlt_daemon_platform_ext_allow_control_client(daemon_local, receiver->fd)) {
+                    if (dlt_daemon_client_process_control(receiver->fd,
+                                                          daemon,
+                                                          daemon_local,
+                                                          &secure_msg,
+                                                          daemon_local->flags.vflag)
+                        == -1) {
+                        dlt_log(LOG_WARNING, "Can't process control messages\n");
+                        return -1;
+                    }
                 }
             }
 
@@ -5142,6 +5279,8 @@ int dlt_daemon_process_user_message_log(DltDaemon *daemon,
         keep_message &= trace_load_keep_message(app, size, daemon, daemon_local, verbose);
 #endif
 
+        keep_message &= dlt_daemon_platform_ext_allow_log_v1(daemon, daemon_local, &(daemon_local->msg));
+
         if (keep_message)
           dlt_daemon_client_send_message_to_all_client(daemon, daemon_local, verbose);
 
@@ -5190,6 +5329,7 @@ int dlt_daemon_process_user_message_log(DltDaemon *daemon,
         keep_message &=
             trace_load_keep_message_v2(app, size, daemon, daemon_local, verbose);
 #endif
+        keep_message &= dlt_daemon_platform_ext_allow_log_v2(daemon, daemon_local, &(daemon_local->msgv2));
         if (keep_message){
             dlt_daemon_client_send_message_to_all_client_v2(daemon, daemon_local, verbose);
         }
@@ -5245,6 +5385,7 @@ int dlt_daemon_process_user_message_log(DltDaemon *daemon,
         keep_message &=
             trace_load_keep_message(app, size, daemon, daemon_local, verbose);
 #endif
+        keep_message &= dlt_daemon_platform_ext_allow_log_v1(daemon, daemon_local, &(daemon_local->msg));
         if (keep_message){
             dlt_daemon_client_send_message_to_all_client(daemon, daemon_local, verbose);
         }

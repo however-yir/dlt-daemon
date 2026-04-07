@@ -366,6 +366,92 @@ The address on which daemon multicasts the log messages
 
 The Multicase IP port. Default: 3491
 
+# PLATFORM EXTENSION OPTIONS (COMPATIBILITY-SAFE, OPT-IN)
+
+All options in this section are optional and disabled by default, so legacy DLT protocol behavior remains unchanged unless explicitly enabled.
+
+## CacheStrategy
+
+Cache strategy profile for platform tuning.
+
+    Default: legacy
+
+## RingbufferStrategy
+
+Ringbuffer tuning profile: legacy | conservative | aggressive.
+
+    Default: legacy
+
+## BackpressureEnable
+
+Enable backpressure protection logic.
+
+    Default: 0 (disabled)
+
+## BackpressureHighWatermark
+
+Soft message-count watermark for overload handling.
+
+    Default: 0 (disabled)
+
+## BackpressureHardLimit
+
+Hard message-count limit; when reached, incoming messages can be dropped by policy.
+
+    Default: 0 (disabled)
+
+## BackpressureDropMtinThreshold
+
+When above high watermark, drop messages above this MTIN threshold first.
+
+    Default: 4
+
+## DegradeOnOverload
+
+Enable degraded mode when backpressure is active.
+
+    Default: 0 (disabled)
+
+## AppRateLimitPerSecond / AppRateLimitBurst
+
+Per-application token-bucket rate limiting.
+
+    Default: 0 (disabled)
+
+## ControlAuthMode / ControlAuthAllowlist
+
+Control-message authorization policy.
+
+    - `0`: disabled
+    - `1`: localhost-only
+    - `2`: allowlist-based
+
+    Default: 0 (disabled)
+
+## JsonExportEnable / JsonExportPath
+
+Enable structured JSON-lines export and set destination path.
+
+    Default: disabled
+
+## PrometheusMetricsEnable / PrometheusMetricsPath
+
+Enable Prometheus textfile metrics export and set destination path.
+
+    Default: disabled
+
+## ForwardTarget / ForwardTLSEnable / ForwardTLS*
+
+Inject forwarding endpoint and TLS material paths for remote transport integration.
+
+    Default: disabled
+
+## BridgeBackend / BridgeEndpoint
+
+Bridge output backend and endpoint metadata (for FluentBit/Vector integration flows).
+
+    Default: disabled
+
 # AUTHOR
 
 Alexander Wenzel (alexander.aw.wenzel (at) bmw (dot) de)

@@ -1,0 +1,28 @@
+name: ARM Cross Build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-aarch64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Prepare submodule
+      run: |
+        git submodule init
+        git submodule update
+    - name: Install cross compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+    - name: Configure
+      run: |
+        cmake -S . -B build-aarch64 \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/aarch64-linux-gnu.cmake
+    - name: Build
+      run: cmake --build build-aarch64 --target dlt-daemon -- -j$(nproc)

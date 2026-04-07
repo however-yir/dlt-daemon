@@ -1,0 +1,22 @@
+name: Protocol Compatibility Regression
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  protocol-compat-regression:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Prepare submodule
+      run: |
+        git submodule init
+        git submodule update
+
+    - name: Run AUTOSAR V1/V2 compatibility gate
+      run: bash scripts/protocol-compat-gate.sh
