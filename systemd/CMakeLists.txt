@@ -73,6 +73,15 @@ if(WITH_SYSTEMD)
         install(FILES ${PROJECT_BINARY_DIR}/systemd/dlt.socket DESTINATION ${SYSTEMD_CONFIGURATIONS_FILES_DIR} )
     endif(WITH_SYSTEMD_SOCKET_ACTIVATION)
 
+    configure_file(${PROJECT_SOURCE_DIR}/systemd/dlt-platform.service.cmake ${PROJECT_BINARY_DIR}/systemd/dlt-platform.service)
+    message( STATUS "Configured systemd unit file:dlt-platform.service" )
+    install(FILES ${PROJECT_BINARY_DIR}/systemd/dlt-platform.service DESTINATION ${SYSTEMD_CONFIGURATIONS_FILES_DIR} )
+
+    install(FILES ${PROJECT_SOURCE_DIR}/scripts/dlt-healthcheck.sh
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+            COMPONENT base)
+
     message(STATUS "Unit files will be installed to ${SYSTEMD_CONFIGURATIONS_FILES_DIR} after make install" )
 
 endif(WITH_SYSTEMD)

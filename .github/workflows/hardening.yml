@@ -1,0 +1,50 @@
+name: Hardening Checks
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install cppcheck
+      run: sudo apt-get update && sudo apt-get install -y cppcheck
+    - name: Run cppcheck
+      run: |
+        cppcheck --error-exitcode=1 \
+          --enable=warning,performance,portability,style \
+          --std=c11 \
+          --suppress=missingIncludeSystem \
+          include src
+
+  sanitizer:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        san: [address, undefined]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Prepare submodule
+      run: |
+        git submodule init
+        git submodule update
+    - name: Configure
+      run: |
+        cmake -S . -B build-${{ matrix.san }} \
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DWITH_DLT_UNIT_TESTS=ON \
+          -DBUILD_GMOCK=OFF \
+          -DCMAKE_C_FLAGS="-fsanitize=${{ matrix.san }} -fno-omit-frame-pointer" \
+          -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.san }} -fno-omit-frame-pointer" \
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=${{ matrix.san }}"
+    - name: Build
+      run: cmake --build build-${{ matrix.san }} -- -j$(nproc)
+    - name: Run target tests
+      run: |
+        ctest --test-dir build-${{ matrix.san }} --output-on-failure \
+          -R "gtest_dlt_(daemon|daemon_v2|daemon_common|daemon_common_v2)$"

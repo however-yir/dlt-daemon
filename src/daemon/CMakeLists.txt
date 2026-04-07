@@ -22,6 +22,7 @@ set(dlt_daemon_SRCS
     dlt-daemon.c
     dlt_daemon_client.c
     dlt_daemon_common.c
+    dlt_daemon_platform_ext.c
     dlt_daemon_connection.c
     dlt_daemon_event_handler.c
     dlt_daemon_offline_logstorage.c

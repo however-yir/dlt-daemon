@@ -1,0 +1,20 @@
+[sources.dlt_json]
+type = "file"
+include = ["/var/log/dlt/dlt-structured.jsonl"]
+read_from = "beginning"
+
+[transforms.dlt_parse]
+type = "remap"
+inputs = ["dlt_json"]
+source = '''
+. = parse_json!(string!(.message))
+.source = "dlt-daemon"
+.protocol = "autosar_dlt"
+'''
+
+[sinks.out]
+type = "socket"
+inputs = ["dlt_parse"]
+address = "127.0.0.1:6000"
+mode = "tcp"
+encoding.codec = "json"

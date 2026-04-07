@@ -154,6 +154,28 @@ typedef struct
     DltBindAddress_t* ipNodes;                              /**< (String: BindAddress) The daemon accepts connections only on this list of IP addresses        */
     int  injectionMode;                                     /**< (Boolean) Injection mode                                                                      */
     int  protocolVersion;                                   /**< (int) Protocol version selected by user (1 or 2, 0=default)                                  */
+    char cacheStrategy[DLT_DAEMON_FLAG_MAX];                /**< (String) Cache strategy profile                                                               */
+    char ringbufferStrategy[DLT_DAEMON_FLAG_MAX];           /**< (String) Ring buffer strategy profile                                                         */
+    int  backpressureEnabled;                               /**< (Boolean) Enable backpressure protection                                                      */
+    unsigned int backpressureHighWatermark;                 /**< (int) Soft watermark (message count)                                                          */
+    unsigned int backpressureHardLimit;                     /**< (int) Hard watermark (message count)                                                          */
+    int  backpressureDropMtinThreshold;                     /**< (int) Drop messages above this MTIN under pressure                                            */
+    int  degradeOnOverload;                                 /**< (Boolean) Enable degraded mode when overloaded                                                */
+    unsigned int appRateLimitPerSecond;                     /**< (int) Per-application rate limit in messages/s                                                */
+    unsigned int appRateLimitBurst;                         /**< (int) Per-application token bucket burst                                                      */
+    int  controlAuthMode;                                   /**< (int) 0=off, 1=localhost, 2=allowlist                                                         */
+    char controlAuthAllowlist[DLT_DAEMON_FLAG_MAX];         /**< (String) Allowed addresses for control commands                                               */
+    int  jsonExportEnable;                                  /**< (Boolean) Export structured JSON records                                                       */
+    char jsonExportPath[DLT_PATH_MAX];                      /**< (String) Path to JSON lines export                                                             */
+    int  prometheusMetricsEnable;                           /**< (Boolean) Enable Prometheus textfile exporter                                                  */
+    char prometheusMetricsPath[DLT_PATH_MAX];               /**< (String) Path to Prometheus textfile                                                           */
+    char forwardTarget[DLT_DAEMON_FLAG_MAX];                /**< (String) External forwarding target (host:port)                                                */
+    int  forwardTLSEnable;                                  /**< (Boolean) Enable TLS for external forwarding                                                   */
+    char forwardTLSCAFile[DLT_PATH_MAX];                    /**< (String) TLS CA file path                                                                      */
+    char forwardTLSCertFile[DLT_PATH_MAX];                  /**< (String) TLS client cert file path                                                             */
+    char forwardTLSKeyFile[DLT_PATH_MAX];                   /**< (String) TLS client key file path                                                              */
+    char bridgeBackend[DLT_DAEMON_FLAG_MAX];                /**< (String) Bridge backend name (fluent-bit/vector)                                               */
+    char bridgeEndpoint[DLT_DAEMON_FLAG_MAX];               /**< (String) Bridge endpoint                                                                        */
 } DltDaemonFlags;
 /**
  * The global parameters of a dlt daemon.

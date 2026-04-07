@@ -1,162 +1,347 @@
-# dlt-daemon
+# 车机日志平台 / Cockpit Logging Platform（COVESA DLT 增强工程）
 
-这是 **dlt-daemon** 的中文说明文档。
+🔥 面向车机与座舱场景的日志平台工程化实现。  
+🚀 基于 `COVESA dlt-daemon`，在不破坏 DLT 协议行为的前提下补齐配置化治理、稳定性保护与可运维能力。  
+⭐ 覆盖 AUTOSAR DLT V1/V2 兼容回归、控制鉴权、应用级限流、背压保护、JSON 导出、Prometheus 指标、FluentBit/Vector 桥接、ARM/Yocto 交付链路。
 
-本项目是车载诊断日志传输中间件实现，面向 ECU 日志采集、转发、过滤与诊断分析链路。
-仓库当前形态以“可运行 + 可维护 + 可二次开发”为目标，兼顾工程实践与业务扩展。
+<p align="center">
+  <img src="https://img.shields.io/badge/AUTOSAR-DLT%20V1%2FV2-2b7fff" alt="AUTOSAR DLT V1/V2" />
+  <img src="https://img.shields.io/badge/License-MPL--2.0-brightgreen" alt="MPL-2.0" />
+  <img src="https://img.shields.io/badge/Build-CMake-blue" alt="CMake" />
+  <img src="https://img.shields.io/badge/Deploy-Linux%2FARM-orange" alt="Linux/ARM" />
+</p>
+
+---
 
 ## 目录
 
-- [1. 项目概述](#1-项目概述)
-- [2. 目标与使用场景](#2-目标与使用场景)
-- [3. 功能与能力边界](#3-功能与能力边界)
-- [4. 技术栈与依赖](#4-技术栈与依赖)
-- [5. 仓库结构说明](#5-仓库结构说明)
-- [6. 快速开始](#6-快速开始)
-- [7. 配置与环境建议](#7-配置与环境建议)
-- [8. 开发与测试流程](#8-开发与测试流程)
-- [9. 发布与协作规范](#9-发布与协作规范)
-- [10. 路线图建议](#10-路线图建议)
-- [11. 贡献指南](#11-贡献指南)
-- [12. License](#12-license)
+- [1. 项目定位](#1-项目定位)
+- [2. 改造目标与设计原则](#2-改造目标与设计原则)
+- [3. 核心能力全景](#3-核心能力全景)
+- [4. 架构与模块边界](#4-架构与模块边界)
+- [5. 配置体系与参数说明](#5-配置体系与参数说明)
+- [6. 构建、运行与部署](#6-构建运行与部署)
+- [7. 运维与故障定位流程](#7-运维与故障定位流程)
+- [8. 测试、质量与发布门禁](#8-测试质量与发布门禁)
+- [9. 交付链路与打包资产](#9-交付链路与打包资产)
+- [10. 仓库结构](#10-仓库结构)
+- [11. 合规与许可证](#11-合规与许可证)
+- [12. 路线图](#12-路线图)
+- [13. 发布检查清单](#13-发布检查清单)
+- [14. 参考文档](#14-参考文档)
+- [15. 常见问题](#15-常见问题)
 
-## 1. 项目概述
+---
 
-本仓库面向真实工程场景构建，重点强调以下原则：
+## 1. 项目定位
 
-- 文档可读：便于团队快速理解上下文与边界。
-- 结构清晰：模块职责明确，便于多人协作。
-- 演进友好：支持持续迭代与版本化管理。
+本仓库将 `dlt-daemon` 定位为“车机日志平台底座”而非单一日志进程。核心目标是：在保持 AUTOSAR DLT 协议语义稳定的前提下，让系统满足车载项目真实落地时对安全、容量、观测、部署和发布治理的要求。
 
-## 2. 目标与使用场景
+相较于仅具备基础日志收发能力的形态，本项目强调四个工程维度：
 
-本仓库适用于以下场景：
+1. 协议稳定性：确保 V1/V2 行为一致，不引入协议级破坏性变更。
+2. 平台治理性：鉴权、限流、背压、降级均可通过配置启停与调优。
+3. 可观测性：支持结构化导出、指标输出、健康检查、故障定位流程。
+4. 可交付性：覆盖 CI 门禁、ARM 交叉编译、Yocto 配方和 systemd 部署模板。
 
-- 作为业务功能开发与验证的工程基座。
-- 作为团队内部的能力沉淀与知识共享仓库。
-- 作为二次开发与集成扩展的起点。
+适用场景：
 
-## 3. 功能与能力边界
+- 车机主控日志汇聚与远程采集；
+- 多应用并发日志写入导致的资源竞争治理；
+- 云边日志链路标准化桥接；
+- 需要纳入持续交付体系的车载基础软件组件。
 
-当前重点能力包括：
-- 支持日志采集、路由转发、过滤与存储。
-- 面向车载场景提供诊断与追踪基础能力。
-- 兼容多类构建环境与集成方式。
+---
 
-当前边界说明：
+## 2. 改造目标与设计原则
 
-- 优先保证主流程稳定与可维护。
-- 复杂能力按模块扩展，不在单次迭代中堆叠过多变更。
-- 所有新增功能建议配套文档与测试。
+### 2.1 改造目标
 
-## 4. 技术栈与依赖
+- 协议兼容优先，不修改 DLT 协议定义与基础行为。
+- 优先改造配置层，再接入核心路径，降低回归风险。
+- 日志路径、缓存策略、外部转发目标全部参数化。
+- 增加控制命令鉴权、应用级配额与限流能力。
+- 增加 ring buffer 与 backpressure 策略调优入口。
+- 增加 JSON 结构化导出、Prometheus 指标导出与桥接配置。
+- 增加异常过载场景的降级策略，保障高峰稳定性。
 
-当前仓库可识别的技术栈如下：
-- Python
-- C/C++ / CMake
+### 2.2 设计原则
 
-依赖管理建议：
+1. 默认行为保持旧语义：新增能力全部为 `opt-in`，默认关闭。
+2. 策略逻辑模块化：将治理逻辑放在独立扩展模块，避免污染协议核心。
+3. 回归门禁先行：发布前必须通过协议兼容回归。
+4. 配置驱动：治理策略通过 `dlt.conf` 控制，不做硬编码绑定。
 
-- 锁定关键依赖版本，避免隐性升级带来的回归风险。
-- 在 CI 中增加基础构建与测试校验。
-- 新增第三方依赖时，补充用途说明与安全评估。
+---
 
-## 5. 仓库结构说明
+## 3. 核心能力全景
 
-建议优先阅读以下路径：
+### 3.1 协议与行为兼容
 
-- \：项目整体说明与入口。
-- \ 或同类目录：架构、规范、部署、FAQ 等。
-- 业务源码目录：按仓库实际模块组织查看。
+- 保持 DLT V1/V2 编解码语义与常规控制流程；
+- 保留原有客户端和应用日志路径；
+- 扩展逻辑以挂接方式引入，减少对历史代码路径的侵入。
 
-如需长期维护，建议保持以下约束：
+### 3.2 安全控制
 
-- 公共能力下沉为共享模块。
-- 场景能力通过独立目录隔离。
-- 配置、脚本、文档三者保持一致更新。
+- 控制命令鉴权：`ControlAuthMode`、`ControlAuthAllowlist`；
+- 在远程控制场景下限制非法命令来源，降低误操作风险。
 
-## 6. 快速开始
+### 3.3 稳定性与容量治理
 
-1. 克隆仓库：
+- 应用级速率控制：`AppRateLimitPerSecond`、`AppRateLimitBurst`；
+- 背压保护：`BackpressureEnable`、`BackpressureHighWatermark`、`BackpressureHardLimit`；
+- 过载降级：`DegradeOnOverload`。
 
-\\\
+### 3.4 可观测与数据输出
 
-2. 按项目类型安装依赖并启动：
+- JSON 结构化导出：`JsonExportEnable`、`JsonExportPath`；
+- Prometheus 指标导出：`PrometheusMetricsEnable`、`PrometheusMetricsPath`；
+- 对接样例：
+  - FluentBit：`deploy/fluent-bit/dlt-json.conf`
+  - Vector：`deploy/vector/dlt-vector.toml`
 
-```bash
-# C/C++ 项目
-cmake -S . -B build
-cmake --build build -j
+### 3.5 网络与传输
+
+- 外部转发目标配置化：`ForwardTarget`；
+- TLS 参数注入：`ForwardTLSEnable`、`ForwardTLSCAFile`、`ForwardTLSCertFile`、`ForwardTLSKeyFile`；
+- TLS 参考配置：`deploy/tls/stunnel-dlt-forwarder.conf`。
+
+### 3.6 Adaptor 扩展机制
+
+- 插件化 runner：`src/adaptor/dlt-adaptor-plugin-runner.sh`；
+- 插件清单：`src/adaptor/plugins/plugins.conf`；
+- 在保留原有 adaptor 兼容性的同时，支持按清单扩展新 adaptor。
+
+---
+
+## 4. 架构与模块边界
+
+```mermaid
+flowchart LR
+  U["应用进程（DLT User）"] --> L["DLT Library"]
+  L --> D["dlt-daemon 协议核心"]
+  D --> X["Platform Extension\n鉴权/限流/背压/降级"]
+  X --> C["DLT Client (V1/V2)"]
+  X --> J["JSON Export"]
+  J --> B["FluentBit / Vector"]
+  X --> M["Prometheus Textfile"]
 ```
 
-3. 首次运行建议先执行最小验证：
+分层边界：
 
-- 能否完成依赖安装。
-- 能否成功启动核心流程。
-- 能否通过基础测试或静态检查。
+- 协议核心层：负责 DLT 标准消息处理与客户端通信；
+- 平台扩展层：负责策略治理，不改动协议定义；
+- 运维集成层：负责服务部署、健康检查、桥接接入和观测对接。
 
-## 7. 配置与环境建议
+---
 
-建议将环境配置分为三层：
+## 5. 配置体系与参数说明
 
-- 本地开发（dev）
-- 集成联调（staging）
-- 生产发布（prod）
+平台扩展参数已在 `src/daemon/dlt.conf` 增加注释模板，采用“默认保守、按需开启”的配置方式。
 
-推荐做法：
+| 配置项 | 说明 | 默认值 |
+|---|---|---|
+| `CacheStrategy` | 缓存策略档位 | `legacy` |
+| `RingbufferStrategy` | ring buffer 调优策略 | `legacy` |
+| `BackpressureEnable` | 背压总开关 | `0` |
+| `BackpressureHighWatermark` | 软水位 | `0` |
+| `BackpressureHardLimit` | 硬水位 | `0` |
+| `BackpressureDropMtinThreshold` | 丢弃阈值 | `4` |
+| `DegradeOnOverload` | 过载降级开关 | `0` |
+| `AppRateLimitPerSecond` | 应用级限速 | `0` |
+| `AppRateLimitBurst` | 应用级突发额度 | `0` |
+| `ControlAuthMode` | 控制鉴权模式 | `0` |
+| `ControlAuthAllowlist` | 控制鉴权白名单 | 空 |
+| `JsonExportEnable` | JSON 导出开关 | `0` |
+| `JsonExportPath` | JSON 导出路径 | 空 |
+| `PrometheusMetricsEnable` | 指标导出开关 | `0` |
+| `PrometheusMetricsPath` | 指标导出路径 | 空 |
+| `ForwardTarget` | 外部转发地址 | 空 |
+| `ForwardTLSEnable` | TLS 开关 | `0` |
+| `ForwardTLS*` | TLS 证书参数 | 空 |
+| `BridgeBackend` | 桥接后端 | 空 |
+| `BridgeEndpoint` | 桥接目标 | 空 |
 
-- 使用 \ 或样例配置文件管理参数模板。
-- 将密钥、令牌、账号等敏感信息放入环境变量或密钥管理系统。
-- 对数据库、缓存、外部 API 地址使用可切换配置。
+---
 
-## 8. 开发与测试流程
+## 6. 构建、运行与部署
 
-推荐工作流：
+### 6.1 基础构建
 
-1. 基于默认分支创建功能分支。
-2. 小步提交，确保每次提交目标明确。
-3. 本地完成构建与测试后再推送。
-4. 通过 Pull Request 完成评审与合并。
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build -- -j$(nproc)
+```
 
-测试建议：
+### 6.2 systemd 部署
 
-- 单元测试覆盖核心业务逻辑。
-- 集成测试覆盖关键接口与主流程。
-- 对高风险改动补充回归用例。
+- 服务模板：`systemd/dlt-platform.service.cmake`
+- 健康检查：`scripts/dlt-healthcheck.sh`
+- 环境变量样例：`deploy/systemd/platform.env`
 
-## 9. 发布与协作规范
+### 6.3 典型部署组合
 
-发布建议：
+1. 协议核心 + JSON 导出 + FluentBit 聚合；
+2. 协议核心 + Prometheus 指标 + Node Exporter Textfile；
+3. 协议核心 + 限流背压 + 过载降级；
+4. 协议核心 + TLS 转发链路。
 
-- 使用语义化版本（如 \）。
-- 在发布说明中明确新增、修复与不兼容变更。
-- 关键发布前执行一次完整回归。
+### 6.4 常用参数组合示例
 
-协作建议：
+灰度阶段建议先观测、后控制，可以按以下顺序推进：
 
-- 需求、设计、代码、测试保持同频更新。
-- 重大改动先在文档中定义边界再实施。
-- 统一 issue / PR 模板，降低沟通成本。
+1. 第一阶段：仅开启 `JsonExportEnable` 与 `PrometheusMetricsEnable`；
+2. 第二阶段：开启 `ControlAuthMode`，先收紧控制入口；
+3. 第三阶段：开启 `AppRateLimitPerSecond` 与 `AppRateLimitBurst`；
+4. 第四阶段：启用 `BackpressureEnable` 和降级策略进行高压防护。
 
-## 10. 路线图建议
+示例（仅用于演示）：
 
-可按以下顺序推进：
+```ini
+JsonExportEnable=1
+JsonExportPath=/var/log/dlt/platform.jsonl
+PrometheusMetricsEnable=1
+PrometheusMetricsPath=/var/lib/node_exporter/textfile_collector/dlt.prom
+ControlAuthMode=1
+ControlAuthAllowlist=127.0.0.1,10.0.0.0/24
+AppRateLimitPerSecond=2000
+AppRateLimitBurst=4000
+BackpressureEnable=1
+BackpressureHighWatermark=75
+BackpressureHardLimit=90
+DegradeOnOverload=1
+```
 
-1. 稳定主流程，补齐最小可观测性。
-2. 优化模块边界，降低耦合度。
-3. 提升自动化测试覆盖率。
-4. 完善部署与运维手册。
-5. 逐步引入性能优化与安全加固。
+---
 
-## 11. 贡献指南
+## 7. 运维与故障定位流程
 
-欢迎以 Issue / PR 方式参与改进，建议提交时包含：
+详细操作说明见 `OPERATIONS.md`。建议排查顺序如下：
 
-- 变更背景与目标
-- 关键实现说明
-- 测试结果或验证步骤
-- 兼容性与风险评估
+1. 执行 `scripts/dlt-healthcheck.sh` 验证服务进程、socket 与端口；
+2. 检查平台指标：
+   - `dlt_platform_messages_dropped_total`
+   - `dlt_platform_messages_dropped_backpressure_total`
+   - `dlt_platform_messages_dropped_quota_total`
+   - `dlt_platform_control_denied_total`
+3. 校验 JSON 导出和桥接链路是否正常写入；
+4. 按水位和限流参数调优，必要时启用降级开关；
+5. 先恢复稳定性，再逐步细化策略阈值。
 
-## 12. License
+---
 
-本仓库遵循当前项目中已有的 License 文件约定。
+## 8. 测试、质量与发布门禁
+
+### 8.1 协议兼容回归门禁（核心）
+
+- Workflow：`.github/workflows/protocol-compat-regression.yml`
+- 脚本：`scripts/protocol-compat-gate.sh`
+- 目标：发布前必须通过 AUTOSAR DLT V1/V2 回归。
+
+### 8.2 工程硬化检查
+
+- `.github/workflows/hardening.yml`
+  - `cppcheck` 静态分析
+  - `ASan/UBSan` 构建与测试
+- `.github/workflows/parser-fuzz.yml`
+  - parser fuzz 任务
+- `.github/workflows/arm-cross-build.yml`
+  - ARM 交叉编译校验
+
+---
+
+## 9. 交付链路与打包资产
+
+- ARM 交叉编译 Toolchain：`cmake/toolchains/aarch64-linux-gnu.cmake`
+- Yocto 层与配方：
+  - `yocto/meta-myco/conf/layer.conf`
+  - `yocto/meta-myco/recipes-extended/dlt-daemon/dlt-daemon_git.bb`
+- systemd 服务模板与部署环境文件：
+  - `systemd/dlt-platform.service.cmake`
+  - `deploy/systemd/platform.env`
+
+以上资产用于将日志平台能力集成到车载 Linux 镜像与持续交付流水线。
+
+---
+
+## 10. 仓库结构
+
+```text
+.
+├── src/
+│   ├── daemon/
+│   └── adaptor/
+├── tests/
+├── scripts/
+├── systemd/
+├── deploy/
+│   ├── fluent-bit/
+│   ├── vector/
+│   └── tls/
+├── yocto/
+├── doc/
+├── OPERATIONS.md
+└── MPL_SOURCE_OFFER.md
+```
+
+---
+
+## 11. 合规与许可证
+
+- 保留原有许可证头注释与 `MPL-2.0` 协议文件；
+- 对 MPL 覆盖文件的修改在分发时应提供对应源码；
+- 源码提供方式说明见 `MPL_SOURCE_OFFER.md`。
+
+---
+
+## 12. 路线图
+
+- 继续完善 adaptor 插件生命周期管理；
+- 增强指标维度与链路追踪能力；
+- 扩展协议兼容回归样例覆盖面；
+- 持续收敛配置项并沉淀标准部署模板。
+
+---
+
+## 13. 发布检查清单
+
+建议发布前执行以下最小检查集：
+
+1. 协议兼容门禁通过（V1/V2 回归通过）；
+2. 核心策略默认关闭验证（确保升级后行为不突变）；
+3. JSON 与指标输出链路校验（文件权限、路径可写、消费端可读）；
+4. 高压场景压测（验证限流、背压、降级阈值）；
+5. systemd 启停与健康检查脚本验证；
+6. ARM 交叉构建与目标环境运行验证；
+7. MPL 合规文件与源码提供说明完整性检查。
+
+该检查单可以直接作为“协议兼容回归”发布门禁的执行依据。
+
+---
+
+## 14. 参考文档
+
+- 配置手册：`doc/dlt.conf.5.md`
+- 运维手册：`OPERATIONS.md`
+- 协议兼容门禁脚本：`scripts/protocol-compat-gate.sh`
+- 健康检查脚本：`scripts/dlt-healthcheck.sh`
+- systemd 模板：`systemd/dlt-platform.service.cmake`
+- Yocto 配方：`yocto/meta-myco/recipes-extended/dlt-daemon/dlt-daemon_git.bb`
+- 源码提供声明：`MPL_SOURCE_OFFER.md`
+
+---
+
+## 15. 常见问题
+
+### Q1：启用扩展策略会影响协议兼容吗？
+不会。扩展策略以旁路治理方式挂接，默认关闭，协议语义保持不变。
+
+### Q2：如何最小化上线风险？
+先在灰度环境开启指标与 JSON 导出，仅观察不拦截；再逐步开启限流、背压与降级。
+
+### Q3：发布前最关键的检查是什么？
+协议兼容回归门禁。若 V1/V2 回归未通过，不建议发布。
+
+### Q4：如何快速接入日志后端？
+优先使用 `deploy/fluent-bit/` 或 `deploy/vector/` 的桥接配置样例。
