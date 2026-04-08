@@ -219,6 +219,20 @@ BackpressureHardLimit=90
 DegradeOnOverload=1
 ```
 
+### 6.5 平台部署拓扑
+
+```mermaid
+flowchart LR
+  APP["Cockpit Apps / Services"] --> USER["DLT User Library"]
+  USER --> CORE["dlt-daemon"]
+  CORE --> JSON["JSON Export"]
+  CORE --> METRIC["Prometheus Textfile"]
+  CORE --> FWD["TLS / Forward Target"]
+  JSON --> PIPE["FluentBit / Vector"]
+  METRIC --> OBS["Node Exporter / Prometheus"]
+  FWD --> BACKEND["Log Backend / Collector"]
+```
+
 ---
 
 ## 7. 运维与故障定位流程
@@ -254,6 +268,16 @@ DegradeOnOverload=1
   - parser fuzz 任务
 - `.github/workflows/arm-cross-build.yml`
   - ARM 交叉编译校验
+
+### 8.3 容量基线与回归证据
+
+| 类别 | 建议基线 | 仓库内证据入口 |
+|---|---|---|
+| 协议兼容 | DLT V1/V2 核心路径可回归 | `tests/gtest_dlt_common*.cpp`, `tests/gtest_dlt_daemon*_v2.cpp` |
+| Gateway/转发 | 网关与转发链路可跑通 | `tests/gtest_dlt_daemon_gateway.sh` |
+| 离线/文件链路 | 离线日志与文件传输可验证 | `tests/start_filetransfer_test.sh`, `tests/start_logstorage_test.sh` |
+| 系统集成 | system logger / journald 路径正常 | `tests/start_system_logger_test.sh`, `tests/start_systemd_journal_test.sh` |
+| 运维健康检查 | 基础健康探针返回正常 | `scripts/dlt-healthcheck.sh` |
 
 ---
 
