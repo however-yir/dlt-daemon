@@ -11,6 +11,12 @@
   <img src="https://img.shields.io/badge/Deploy-Linux%2FARM-orange" alt="Linux/ARM" />
 </p>
 
+> Status: `active`
+>
+> Upstream: `COVESA/dlt-daemon`
+>
+> Role: cockpit logging and observability substrate for vehicle software delivery
+
 ---
 
 ## 目录
