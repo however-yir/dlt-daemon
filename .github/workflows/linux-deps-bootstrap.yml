@@ -1,0 +1,26 @@
+name: linux-deps-bootstrap
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  bootstrap-check:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate dependency installer (dry-run)
+        run: bash scripts/install-linux-deps.sh --dry-run
+
+      - name: Install dependencies
+        run: bash scripts/install-linux-deps.sh
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build
+        run: cmake --build build -- -j$(nproc)

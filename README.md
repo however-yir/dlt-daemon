@@ -176,8 +176,15 @@ flowchart LR
 ### 6.1 基础构建
 
 ```bash
+./scripts/install-linux-deps.sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build -- -j$(nproc)
+```
+
+如果只想先检查脚本行为（不实际安装）：
+
+```bash
+./scripts/install-linux-deps.sh --dry-run
 ```
 
 ### 6.2 systemd 部署
@@ -264,6 +271,8 @@ flowchart LR
 - `.github/workflows/hardening.yml`
   - `cppcheck` 静态分析
   - `ASan/UBSan` 构建与测试
+- `.github/workflows/linux-deps-bootstrap.yml`
+  - Linux 依赖安装脚本校验 + 最小构建验证
 - `.github/workflows/parser-fuzz.yml`
   - parser fuzz 任务
 - `.github/workflows/arm-cross-build.yml`
