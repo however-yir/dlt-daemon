@@ -142,7 +142,7 @@ int g_signo = 0;
 /* used for value from conf file */
 static int value_length = 1024;
 
-static char dlt_timer_conn_types[DLT_TIMER_UNKNOWN + 1] = {
+static DltConnectionType dlt_timer_conn_types[DLT_TIMER_UNKNOWN + 1] = {
     [DLT_TIMER_PACKET] = DLT_CONNECTION_ONE_S_TIMER,
     [DLT_TIMER_ECU] = DLT_CONNECTION_SIXTY_S_TIMER,
 #ifdef DLT_SYSTEMD_WATCHDOG_ENABLE
@@ -209,7 +209,7 @@ void close_pipes(int fds[2])
 /**
  * Print usage information of tool.
  */
-void usage()
+void usage(void)
 {
     char version[DLT_DAEMON_TEXTBUFSIZE];
     dlt_get_version(version, DLT_DAEMON_TEXTBUFSIZE);
@@ -2090,7 +2090,9 @@ static int dlt_daemon_init_fifo(DltDaemonLocal *daemon_local)
 {
     int ret;
     int fd = -1;
+#ifdef __linux__
     int fifo_size;
+#endif
 
     /* open named pipe(FIFO) to receive DLT messages from users */
     umask(0);
@@ -2622,7 +2624,7 @@ void dlt_daemon_local_cleanup(DltDaemon *daemon, DltDaemonLocal *daemon_local, i
     free(daemon_local->flags.ipNodes);
 }
 
-void dlt_daemon_exit_trigger()
+void dlt_daemon_exit_trigger(void)
 {
     /* stop event loop */
     g_exit = -1;
@@ -2788,7 +2790,7 @@ int dlt_daemon_log_internal(DltDaemon *daemon, DltDaemonLocal *daemon_local,
 
         msg.storageheadersizev2 = (uint32_t)(STORAGE_HEADER_V2_FIXED_SIZE + strlen(DLT_DAEMON_ECU_ID));
         msg.baseheadersizev2 = BASE_HEADER_V2_FIXED_SIZE;
-        msg.baseheaderextrasizev2 = (int32_t)dlt_message_get_extraparameters_size_v2(msgcontent);
+        msg.baseheaderextrasizev2 = (uint32_t)dlt_message_get_extraparameters_size_v2(msgcontent);
         /* Ecu Id, App Id, Ctx Id and Session Id*/
         msg.extendedheadersizev2 = (uint32_t)(1 + strlen(DLT_DAEMON_ECU_ID) + 1 + strlen(app_id) + 1 + strlen(ctx_id) + sizeof(uint32_t));
 
@@ -5844,7 +5846,7 @@ int create_timer_fd(DltDaemonLocal *daemon_local,
                      timer_name, strerror(errno));
             local_fd = DLT_FD_INIT;
         }
-#elif __QNX__
+#elif defined(__QNX__)
         /*
          * Since timerfd is not valid in QNX, new threads are introduced
          * to manage timers and communicate with main thread when timer expires.

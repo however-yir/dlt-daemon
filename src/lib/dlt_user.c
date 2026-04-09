@@ -545,7 +545,7 @@ DltReturnValue dlt_init(void)
 
     /* Check logging mode and internal log file is opened or not*/
     if (logging_mode == DLT_LOG_TO_FILE && logging_handle == NULL) {
-        dlt_log_init(logging_mode);
+        dlt_log_init((int)logging_mode);
     }
 
     /* Initialize common part of dlt_init()/dlt_init_file() */
@@ -2391,14 +2391,14 @@ DltReturnValue dlt_set_application_ll_ts_limit(DltLogLevelType loglevel, DltTrac
 
     /* Update local structures */
     for (i = 0; i < dlt_user.dlt_ll_ts_num_entries; i++) {
-        dlt_user.dlt_ll_ts[i].log_level = loglevel;
-        dlt_user.dlt_ll_ts[i].trace_status = tracestatus;
+        dlt_user.dlt_ll_ts[i].log_level = (int8_t)loglevel;
+        dlt_user.dlt_ll_ts[i].trace_status = (int8_t)tracestatus;
 
         if (dlt_user.dlt_ll_ts[i].log_level_ptr)
-            *(dlt_user.dlt_ll_ts[i].log_level_ptr) = loglevel;
+            *(dlt_user.dlt_ll_ts[i].log_level_ptr) = (int8_t)loglevel;
 
         if (dlt_user.dlt_ll_ts[i].trace_status_ptr)
-            *(dlt_user.dlt_ll_ts[i].trace_status_ptr) = tracestatus;
+            *(dlt_user.dlt_ll_ts[i].trace_status_ptr) = (int8_t)tracestatus;
     }
 
     dlt_mutex_unlock();
@@ -2413,7 +2413,7 @@ DltReturnValue dlt_set_application_ll_ts_limit(DltLogLevelType loglevel, DltTrac
     }
 }
 
-int dlt_get_log_state()
+int dlt_get_log_state(void)
 {
     return dlt_user.log_state;
 }
@@ -2506,7 +2506,7 @@ static DltReturnValue dlt_user_log_write_start_internal(DltContext *handle,
                                                         uint32_t messageid,
                                                         bool is_verbose);
 
-inline DltReturnValue dlt_user_log_write_start(DltContext *handle, DltContextData *log, DltLogLevelType loglevel)
+DltReturnValue dlt_user_log_write_start(DltContext *handle, DltContextData *log, DltLogLevelType loglevel)
 {
     return dlt_user_log_write_start_internal(handle, log, loglevel, DLT_USER_DEFAULT_MSGID, true);
 }
@@ -3949,7 +3949,11 @@ void *dlt_user_trace_network_segmented_thread(void *unused)
     /* Unused on purpose. */
     (void)unused;
 #ifdef DLT_USE_PTHREAD_SETNAME_NP
+#if defined(__APPLE__)
+    if (pthread_setname_np("dlt_segmented"))
+#else
     if (pthread_setname_np(dlt_user.dlt_segmented_nwt_handle, "dlt_segmented"))
+#endif
         dlt_log(LOG_WARNING, "Failed to rename segmented thread!\n");
 #elif linux
     if (prctl(PR_SET_NAME, "dlt_segmented", 0, 0, 0) < 0)
@@ -4835,7 +4839,11 @@ void *dlt_user_housekeeperthread_function(void *ptr)
 #endif
 
 #ifdef DLT_USE_PTHREAD_SETNAME_NP
+#if defined(__APPLE__)
+    if (pthread_setname_np("dlt_housekeeper"))
+#else
     if (pthread_setname_np(dlt_housekeeperthread_handle, "dlt_housekeeper"))
+#endif
         dlt_log(LOG_WARNING, "Failed to rename housekeeper thread!\n");
 #elif linux
     if (prctl(PR_SET_NAME, "dlt_housekeeper", 0, 0, 0) < 0)
@@ -7362,7 +7370,9 @@ int dlt_start_threads()
      */
     pthread_condattr_t attr;
     pthread_condattr_init(&attr);
+#if defined(CLOCK_MONOTONIC) && !defined(__APPLE__)
     pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
+#endif
     pthread_cond_init(&dlt_housekeeper_running_cond, &attr);
 
     if (pthread_create(&(dlt_housekeeperthread_handle),

@@ -261,7 +261,22 @@ add_compile_options(
     -Wcast-qual
     -Wno-system-headers
     -Wno-unused-function
-    -Wno-stringop-truncation
+    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-stringop-truncation>
+    $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-stringop-truncation>
+    # AppleClang/Clang on macOS is significantly stricter for legacy C-style
+    # prototypes and narrowing diagnostics. Keep -Werror, but relax these
+    # compiler-specific warnings to preserve cross-platform buildability.
+    $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang>:-Wno-strict-prototypes>
+    $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang>:-Wno-static-in-inline>
+    $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang>:-Wno-conversion>
+    $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang>:-Wno-gnu>
+    $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang>:-Wno-gnu-zero-variadic-macro-arguments>
+    $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang>:-Wno-newline-eof>
+    $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang>:-Wno-deprecated-declarations>
+    $<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang>:-Wno-conversion>
+    $<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang>:-Wno-gnu>
+    $<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang>:-Wno-newline-eof>
+    $<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang>:-Wno-deprecated-declarations>
 )
 
 if(WITH_DOC STREQUAL "OFF")

@@ -968,7 +968,7 @@ DltReturnValue dlt_client_send_ctrl_msg_v2(DltClient *client, char *apid, char *
 
     msg.storageheadersizev2 = STORAGE_HEADER_V2_FIXED_SIZE;
     msg.baseheadersizev2 = BASE_HEADER_V2_FIXED_SIZE;
-    msg.baseheaderextrasizev2 = (int32_t)dlt_message_get_extraparameters_size_v2(DLT_CONTROL_MSG);
+    msg.baseheaderextrasizev2 = (uint32_t)dlt_message_get_extraparameters_size_v2(DLT_CONTROL_MSG);
     msg.extendedheadersizev2 = (uint32_t)(client->ecuid2len) + 1 + appidlen + 1 + ctxidlen + 1;
 
     msg.headersizev2 = (int32_t) (msg.storageheadersizev2 + msg.baseheadersizev2 +
