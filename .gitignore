@@ -33,3 +33,16 @@ debian/files
 debian/libdlt-dev
 debian/libdlt2
 debian/tmp
+
+# --- Baseline Ignore Rules ---
+.DS_Store
+.idea/
+*.iml
+__pycache__/
+*.py[cod]
+.env
+.env.*
+node_modules/
+dist/
+build/
+target/
