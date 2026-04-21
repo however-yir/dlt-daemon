@@ -113,7 +113,14 @@ TEST(t_dlt_daemon_init_user_information, nullpointer)
 
     EXPECT_EQ(-1, dlt_daemon_init_user_information(NULL, NULL, 0, 0));
     EXPECT_EQ(-1, dlt_daemon_init_user_information(NULL, &gateway, 0, 0));
+    EXPECT_EQ(0, dlt_daemon_init(&daemon,
+                                 DLT_DAEMON_RINGBUFFER_MIN_SIZE,
+                                 DLT_DAEMON_RINGBUFFER_MAX_SIZE,
+                                 DLT_DAEMON_RINGBUFFER_STEP_SIZE,
+                                 DLT_RUNTIME_DEFAULT_DIRECTORY,
+                                 DLT_LOG_INFO, DLT_TRACE_STATUS_OFF, 0, 0));
     EXPECT_EQ(0, dlt_daemon_init_user_information(&daemon, NULL, 0, 0));
+    EXPECT_EQ(0, dlt_daemon_free(&daemon, 0));
     EXPECT_EQ(-1, dlt_daemon_init_user_information(&daemon, NULL, 1, 0));
 }
 
