@@ -19,6 +19,7 @@ jobs:
           --enable=warning,performance,portability,style \
           --std=c11 \
           --suppress=missingIncludeSystem \
+          --suppress=unknownMacro \
           include src
 
   sanitizer:

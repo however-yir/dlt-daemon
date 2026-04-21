@@ -866,8 +866,8 @@ TEST(t_dlt_logstorage_write, normal)
                          sizeof(DltStorageHeader) +
                          sizeof(DltStandardHeader) +
                          DLT_STANDARD_HEADER_EXTRA_SIZE(msg.standardheader->htyp));
-    msg.extendedheader->msin = (DLT_TYPE_LOG << DLT_MSIN_MSTP_SHIFT) |
-                               (uint8_t)(((log_level << DLT_MSIN_MTIN_SHIFT) & DLT_MSIN_MTIN) | DLT_MSIN_VERB);
+    msg.extendedheader->msin = (uint8_t)((DLT_TYPE_LOG << DLT_MSIN_MSTP_SHIFT) |
+                               ((log_level << DLT_MSIN_MTIN_SHIFT) & DLT_MSIN_MTIN) | DLT_MSIN_VERB);
     msg.extendedheader->noar = 1;
     dlt_set_id(msg.extendedheader->apid, apid);
     dlt_set_id(msg.extendedheader->ctid, ctid);
