@@ -101,6 +101,7 @@ foreach(target IN LISTS TARGET_LIST)
             ../src/daemon/dlt_daemon_connection.c
             ../src/daemon/dlt_daemon_event_handler.c
             ../src/daemon/dlt_daemon_offline_logstorage.c
+            ../src/daemon/dlt_daemon_platform_ext.c
             ../src/daemon/dlt_daemon_serial.c
             ../src/daemon/dlt_daemon_socket.c
             ../src/daemon/dlt_daemon_unix_socket.c
@@ -119,6 +120,7 @@ foreach(target IN LISTS TARGET_LIST)
             ../src/daemon/dlt_daemon_connection.c
             ../src/daemon/dlt_daemon_event_handler.c
             ../src/daemon/dlt_daemon_offline_logstorage.c
+            ../src/daemon/dlt_daemon_platform_ext.c
             ../src/daemon/dlt_daemon_serial.c
             ../src/daemon/dlt_daemon_socket.c
             ../src/daemon/dlt_daemon_unix_socket.c
