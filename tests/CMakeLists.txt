@@ -180,6 +180,12 @@ foreach(target IN LISTS TARGET_LIST)
     set(target_SRCS ${target}.cpp)
     add_executable(${target} ${target_SRCS} ${systemd_SRCS})
     target_link_libraries(${target} ${DLT_DAEMON_LIBRARIES} ${ZLIB_LIBRARY})
+    if(${target} STREQUAL "gtest_dlt_daemon_offline_log")
+        # GCC 13+ can emit a false-positive maybe-uninitialized diagnostic in
+        # libstdc++ regex internals when compiling this large fixture with -Werror.
+        target_compile_options(${target} PRIVATE
+            $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wno-maybe-uninitialized>)
+    endif()
     if(WITH_DLT_INSTALLED_TESTS)
         install(TARGETS ${target} RUNTIME DESTINATION ${DLT_TEST_DIR})
         if(EXISTS ${PROJECT_SOURCE_DIR}/tests/${target}.sh)

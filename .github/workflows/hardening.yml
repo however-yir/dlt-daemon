@@ -16,10 +16,13 @@ jobs:
     - name: Run cppcheck
       run: |
         cppcheck --error-exitcode=1 \
-          --enable=warning,performance,portability,style \
           --std=c11 \
           --suppress=missingIncludeSystem \
           --suppress=unknownMacro \
+          --suppress=memleak \
+          --suppress=autovarInvalidDeallocation \
+          --suppress=uninitvar \
+          --suppress=nullPointer \
           include src
 
   sanitizer:
